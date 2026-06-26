@@ -1,0 +1,220 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RNCD Pesquisas — Rede Nacional de Combate à Desinformação</title>
+  <link rel="icon" type="image/png" href="{% static 'img/cropped-icoico.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="{% url 'pesquisas:index' %}" class="brand">
+        <img src="{% static 'img/logo_RNCD_2026_parafundotextura-01.png' %}" alt="RNCD" class="brand-logo">
+      </a>
+      <div class="header-text">
+        <p class="header-kicker">Rede Nacional de Combate à Desinformação</p>
+        <h1 class="header-title">Pesquisas</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <section class="search-panel">
+      <div class="panel-head">
+        <h2>Buscar documentos</h2>
+        <p>Pesquise por título, membro, categoria, tags e demais atributos do acervo.</p>
+      </div>
+
+      <form method="get" action="{% url 'pesquisas:index' %}" class="search-form">
+        <div class="search-row search-row-main">
+          <label class="field field-grow" for="q">
+            <span>Palavra-chave</span>
+            <input type="search" id="q" name="q" value="{{ filters.q }}" placeholder="Título, link, membro, tag...">
+          </label>
+          <button type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+
+        <div class="filters-grid">
+          <label class="field" for="autor">
+            <span>Membro</span>
+            <select id="autor" name="autor">
+              <option value="">Todos</option>
+              {% for author in authors %}
+                <option value="{{ author.id }}" {% if filters.autor == author.id|stringformat:"s" %}selected{% endif %}>{{ author.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <label class="field" for="categoria">
+            <span>Categoria</span>
+            <select id="categoria" name="categoria">
+              <option value="">Todas</option>
+              {% for category in categories %}
+                <option value="{{ category.id }}" {% if filters.categoria == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <label class="field" for="tag">
+            <span>Tag</span>
+            <select id="tag" name="tag">
+              <option value="">Todas</option>
+              {% for tag in tags %}
+                <option value="{{ tag.id }}" {% if filters.tag == tag.id|stringformat:"s" %}selected{% endif %}>{{ tag.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <label class="field" for="tipo_arquivo">
+            <span>Tipo de arquivo</span>
+            <select id="tipo_arquivo" name="tipo_arquivo">
+              <option value="">Todos</option>
+              {% for ft in file_types %}
+                <option value="{{ ft }}" {% if filters.tipo_arquivo == ft %}selected{% endif %}>{{ ft }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <label class="field" for="tipo_link">
+            <span>Tipo de link</span>
+            <select id="tipo_link" name="tipo_link">
+              <option value="">Todos</option>
+              {% for value, label in link_type_choices %}
+                <option value="{{ value }}" {% if filters.tipo_link == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <label class="field" for="cadastrado_por">
+            <span>Cadastrado por</span>
+            <select id="cadastrado_por" name="cadastrado_por">
+              <option value="">Todos</option>
+              {% for c in creators %}
+                <option value="{{ c }}" {% if filters.cadastrado_por == c %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <label class="field" for="data_inicio">
+            <span>Data inicial</span>
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ filters.data_inicio }}">
+          </label>
+
+          <label class="field" for="data_fim">
+            <span>Data final</span>
+            <input type="date" id="data_fim" name="data_fim" value="{{ filters.data_fim }}">
+          </label>
+        </div>
+
+        <div class="form-actions">
+          {% if has_active_filters %}
+            <a href="{% url 'pesquisas:index' %}" class="btn btn-ghost">Limpar filtros</a>
+          {% endif %}
+        </div>
+      </form>
+    </section>
+
+    <section class="results-panel">
+      <div class="results-head">
+        <h2>Últimos conteúdos inseridos na plataforma</h2>
+        <p class="results-count">
+          {% if has_active_filters %}
+            {{ total_results }} documento{{ total_results|pluralize }} encontrado{{ total_results|pluralize }}
+          {% else %}
+            {{ total_results }} documento{{ total_results|pluralize }} no acervo
+          {% endif %}
+        </p>
+      </div>
+
+      {% if page_obj.object_list %}
+        <div class="table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Membro</th>
+                <th>Categorias</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for doc in page_obj %}
+                <tr>
+                  <td class="col-title">
+                    <span class="doc-title">{{ doc.title }}</span>
+                    {% if doc.published_at %}
+                      <time class="doc-date" datetime="{{ doc.published_at|date:'c' }}">{{ doc.published_at|date:'d/m/Y' }}</time>
+                    {% endif %}
+                    {% if doc.tags.exists %}
+                      <div class="doc-tags">
+                        {% for tag in doc.tags.all %}
+                          <span class="tag-chip">{{ tag.name }}</span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td class="col-author">
+                    {% if doc.doc_author %}
+                      <a href="?autor={{ doc.doc_author.id }}" class="filter-link">{{ doc.doc_author.name }}</a>
+                    {% else %}
+                      <span class="muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="col-category">
+                    {% if doc.category %}
+                      <a href="?categoria={{ doc.category.id }}" class="filter-link">{{ doc.category.name }}</a>
+                    {% else %}
+                      <span class="muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="col-link">
+                    {% if doc.access_url %}
+                      <a href="{{ doc.access_url }}" class="doc-link" target="_blank" rel="noopener noreferrer">
+                        Abrir
+                        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                      </a>
+                    {% else %}
+                      <span class="muted">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+          <nav class="pagination" aria-label="Paginação">
+            {% if page_obj.has_previous %}
+              <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}" class="page-link">Anterior</a>
+            {% endif %}
+
+            <span class="page-info">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+              <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}" class="page-link">Próxima</a>
+            {% endif %}
+          </nav>
+        {% endif %}
+      {% else %}
+        <div class="empty-state">
+          <p>Nenhum documento encontrado com os filtros selecionados.</p>
+        </div>
+      {% endif %}
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <img src="{% static 'img/logo_RNCD_2026_parafundoescuro-02.png' %}" alt="RNCD" class="footer-logo">
+      <p>Rede Nacional de Combate à Desinformação</p>
+    </div>
+  </footer>
+</body>
+</html>

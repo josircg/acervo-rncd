@@ -11,26 +11,29 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-import os
+import environ
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env(
+    ADMIN_EMAIL=(str, ''),
+    ALLOWED_HOSTS=(list, []),
+    DJANGO_DEBUG=(bool, False),
+)
+
+env_file = Path(__file__).resolve().parent / "local.env"
+if env_file.exists():
+    environ.Env.read_env(str(env_file))
+
+SECRET_KEY = env("SECRET_KEY")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-71wk_41_tr05g2e1t!q0o+3!)lu*+b!h6h9ub7a5rfp$==9z9=',
-)
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() in ('1', 'true', 'yes')
+DEBUG = env('DJANGO_DEBUG')
 
-_allowed_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
-ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts.split(',') if host.strip()]
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 
 # Application definition

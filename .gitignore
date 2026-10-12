@@ -20,6 +20,7 @@ staticfiles/
 # Ambiente local / segredos
 deploy.env
 .env
+config/local.env
 
 # SO / editores
 .DS_Store

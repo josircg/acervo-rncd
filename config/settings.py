@@ -20,7 +20,6 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     CSRF_TRUSTED_ORIGINS=(list, []),
     DJANGO_DEBUG=(bool, False),
-    SECURE_HSTS_SECONDS=(int, 31536000),
 )
 
 env_file = Path(__file__).resolve().parent / "local.env"
@@ -161,9 +160,13 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # HSTS é controlado pelo nginx (Certbot), e não aqui, para que o header
+    # cubra também os arquivos estáticos servidos direto pelo nginx — que
+    # nunca passam pelo Django. Ver doc/nginx-acervo.conf.
+    #
+    # security.W004 avisa que SECURE_HSTS_SECONDS não está definido; o aviso é
+    # silenciado de propósito, pois o HSTS é tratado no nginx.
+    SILENCED_SYSTEM_CHECKS = ['security.W004']
 
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'

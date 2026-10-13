@@ -18,7 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     ADMIN_EMAIL=(str, ''),
     ALLOWED_HOSTS=(list, []),
+    CSRF_TRUSTED_ORIGINS=(list, []),
     DJANGO_DEBUG=(bool, False),
+    SECURE_HSTS_SECONDS=(int, 31536000),
 )
 
 env_file = Path(__file__).resolve().parent / "local.env"
@@ -34,6 +36,10 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env('DJANGO_DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+
+# Origens confiáveis para CSRF (necessário atrás de proxy/HTTPS no Django 3.2+).
+# Informar com esquema, ex.: CSRF_TRUSTED_ORIGINS=https://seu-dominio.org
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS')
 
 
 # Application definition
@@ -139,3 +145,25 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Segurança de produção
+# https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+#
+# Estes ajustes só são aplicados quando DEBUG=False, para não quebrar o
+# desenvolvimento local (runserver sob HTTP). A aplicação roda atrás de um
+# proxy que termina o TLS e encaminha via http para o Gunicorn, por isso o
+# SECURE_PROXY_SSL_HEADER é necessário para o Django reconhecer HTTPS.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'

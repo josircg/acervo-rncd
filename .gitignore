@@ -15,6 +15,7 @@ build/
 # Django
 db.sqlite3
 staticfiles/
+media/
 *.log
 
 # Ambiente local / segredos

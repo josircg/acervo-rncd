@@ -2,18 +2,18 @@ from django.db import models
 from django.utils.text import slugify
 
 
-class DocAuthor(models.Model):
-    name = models.CharField('Membro', max_length=255, unique=True)
+class Organisation(models.Model):
+    name = models.CharField('Organização', max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
 
     class Meta:
         ordering = ['name']
-        verbose_name = 'Membro'
-        verbose_name_plural = 'Membros'
+        verbose_name = 'Organização'
+        verbose_name_plural = 'Organizações'
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name) or 'membro'
+            self.slug = slugify(self.name) or 'organizacao'
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -70,11 +70,9 @@ class Document(models.Model):
     direct_link = models.URLField('Link direto', max_length=2000, blank=True)
     link_type = models.CharField('Tipo de link', max_length=20, choices=LINK_TYPE_CHOICES, default='url')
     creator = models.CharField('Cadastrado por', max_length=100, blank=True, db_index=True)
-    doc_author = models.ForeignKey(
-        DocAuthor,
-        verbose_name='Membro',
-        on_delete=models.SET_NULL,
-        null=True,
+    organisations = models.ManyToManyField(
+        Organisation,
+        verbose_name='Organizações',
         blank=True,
         related_name='documents',
     )
@@ -87,6 +85,9 @@ class Document(models.Model):
         related_name='documents',
     )
     file_type = models.CharField('Tipo de arquivo', max_length=255, blank=True, db_index=True)
+    file = models.FileField('Arquivo', upload_to='documentos/%Y/%m/', blank=True)
+    authorship = models.TextField('Autoria', blank=True)
+    doi = models.CharField('DOI', max_length=255, blank=True, db_index=True)
     tags = models.ManyToManyField(DocTag, verbose_name='Tags', blank=True, related_name='documents')
     file_size = models.CharField('Tamanho', max_length=50, blank=True)
     download_count = models.PositiveIntegerField('Downloads', default=0)

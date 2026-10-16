@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.text import slugify
 
-from pesquisas.models import DocAuthor, DocCategory, DocTag, Document
+from pesquisas.models import DocCategory, DocTag, Document, Organisation
 
 NS = {
     'content': 'http://purl.org/rss/1.0/modules/content/',
@@ -64,7 +64,7 @@ class Command(BaseCommand):
             meta = self._meta(item)
             published_at = self._parse_datetime(self._text(item, 'wp:post_date'))
 
-            author_name = None
+            organisation_names = []
             category_name = None
             file_type = ''
             tag_names = []
@@ -75,17 +75,13 @@ class Command(BaseCommand):
                 if not value:
                     continue
                 if domain == 'doc_author':
-                    author_name = value
+                    organisation_names.append(value)
                 elif domain == 'doc_categories':
                     category_name = value
                 elif domain == 'file_type':
                     file_type = value
                 elif domain == 'doc_tags':
                     tag_names.append(value)
-
-            doc_author = None
-            if author_name:
-                doc_author, _ = DocAuthor.objects.get_or_create(name=author_name)
 
             category = None
             if category_name:
@@ -98,7 +94,6 @@ class Command(BaseCommand):
                 'direct_link': meta.get('_dlp_direct_link_url', ''),
                 'link_type': meta.get('_dlp_document_link_type', 'url') or 'url',
                 'creator': self._text(item, 'dc:creator') or '',
-                'doc_author': doc_author,
                 'category': category,
                 'file_type': file_type,
                 'file_size': meta.get('_dlp_document_file_size', ''),
@@ -111,6 +106,15 @@ class Command(BaseCommand):
                 wp_post_id=wp_post_id,
                 defaults=defaults,
             )
+
+            if organisation_names:
+                organisations = []
+                for org_name in organisation_names:
+                    organisation, _ = Organisation.objects.get_or_create(name=org_name)
+                    organisations.append(organisation)
+                document.organisations.set(organisations)
+            else:
+                document.organisations.clear()
 
             if tag_names:
                 tags = []

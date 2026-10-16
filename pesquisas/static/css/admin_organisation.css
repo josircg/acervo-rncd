@@ -1,0 +1,20 @@
+/* Ajustes de largura no formulário de edição de Organização (admin). */
+
+/* Campo "name" (nome da organização) mais largo. */
+#organisation_form #id_name {
+    width: 48rem;
+    max-width: 100%;
+}
+
+/* Inline de documentos associados: dá mais largura ao bloco e ao
+   widget Select2 do campo document. */
+#Document_organisations-group .select2-container {
+    min-width: 42rem;
+    max-width: 100%;
+}
+
+/* Alarga a coluna do campo document na tabela do inline. */
+#Document_organisations-group table td.field-document,
+#Document_organisations-group table th.column-document {
+    width: 46rem;
+}

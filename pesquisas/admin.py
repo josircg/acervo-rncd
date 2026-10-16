@@ -1,13 +1,33 @@
 from django.contrib import admin
 
-from .models import DocAuthor, DocCategory, DocTag, Document
+from .models import DocCategory, DocTag, Document, Organisation
 
 
-@admin.register(DocAuthor)
-class DocAuthorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug')
+class DocumentOrganisationInline(admin.TabularInline):
+    """Documentos associados à organização (tabela intermediária do M2M)."""
+    model = Document.organisations.through
+    extra = 0
+    autocomplete_fields = ('document',)
+    verbose_name = 'Documento associado'
+    verbose_name_plural = 'Documentos associados'
+
+
+@admin.register(Organisation)
+class OrganisationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'document_count')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
+    inlines = (DocumentOrganisationInline,)
+
+    class Media:
+        css = {'all': ('css/admin_organisation.css',)}
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('documents')
+
+    @admin.display(description='Documentos')
+    def document_count(self, obj):
+        return obj.documents.count()
 
 
 @admin.register(DocCategory)
@@ -28,16 +48,16 @@ class DocTagAdmin(admin.ModelAdmin):
 class DocumentAdmin(admin.ModelAdmin):
     list_display = (
         'title',
-        'doc_author',
+        'list_organisations',
         'category',
         'file_type',
         'link_type',
         'published_at',
         'status',
     )
-    list_filter = ('status', 'link_type', 'category', 'doc_author', 'file_type', 'creator')
-    search_fields = ('title', 'direct_link', 'internal_link', 'creator', 'slug')
-    autocomplete_fields = ('doc_author', 'category')
+    list_filter = ('status', 'link_type', 'category', 'organisations', 'file_type', 'creator')
+    search_fields = ('title', 'direct_link', 'internal_link', 'creator', 'slug', 'doi', 'authorship')
+    autocomplete_fields = ('organisations', 'category')
     filter_horizontal = ('tags',)
     readonly_fields = ('created_at', 'updated_at')
     date_hierarchy = 'published_at'
@@ -52,13 +72,20 @@ class DocumentAdmin(admin.ModelAdmin):
             ),
         }),
         ('Classificação', {
-            'fields': ('doc_author', 'category', 'file_type', 'tags', 'creator'),
+            'fields': ('organisations', 'authorship', 'category', 'file_type', 'tags', 'creator', 'doi'),
         }),
-        ('Links', {
-            'fields': ('link_type', 'direct_link', 'internal_link', 'file_size', 'download_count'),
+        ('Links e arquivo', {
+            'fields': ('link_type', 'direct_link', 'internal_link', 'file', 'file_size', 'download_count'),
         }),
         ('Metadados', {
             'classes': ('collapse',),
             'fields': ('created_at', 'updated_at'),
         }),
     )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('organisations')
+
+    @admin.display(description='Organizações')
+    def list_organisations(self, obj):
+        return ', '.join(o.name for o in obj.organisations.all()) or '—'

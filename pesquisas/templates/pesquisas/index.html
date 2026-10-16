@@ -19,7 +19,7 @@
       </a>
       <div class="header-text">
         <p class="header-kicker">Rede Nacional de Combate à Desinformação</p>
-        <h1 class="header-title">Pesquisas</h1>
+        <h1 class="header-title">Acervo de Documentos</h1>
       </div>
     </div>
   </header>
@@ -27,26 +27,25 @@
   <main class="container main-content">
     <section class="search-panel">
       <div class="panel-head">
-        <h2>Buscar documentos</h2>
-        <p>Pesquise por título, membro, categoria, tags e demais atributos do acervo.</p>
+        <p>Pesquise por título, organização, categoria, tags e demais atributos do acervo.</p>
       </div>
 
       <form method="get" action="{% url 'pesquisas:index' %}" class="search-form">
         <div class="search-row search-row-main">
           <label class="field field-grow" for="q">
             <span>Palavra-chave</span>
-            <input type="search" id="q" name="q" value="{{ filters.q }}" placeholder="Título, link, membro, tag...">
+            <input type="search" id="q" name="q" value="{{ filters.q }}" placeholder="Título, link, organização, tag...">
           </label>
           <button type="submit" class="btn btn-primary">Buscar</button>
         </div>
 
         <div class="filters-grid">
-          <label class="field" for="autor">
-            <span>Membro</span>
-            <select id="autor" name="autor">
-              <option value="">Todos</option>
-              {% for author in authors %}
-                <option value="{{ author.id }}" {% if filters.autor == author.id|stringformat:"s" %}selected{% endif %}>{{ author.name }}</option>
+          <label class="field field-wide" for="organizacao">
+            <span>Organização</span>
+            <select id="organizacao" name="organizacao">
+              <option value="">Todas</option>
+              {% for organisation in organisations %}
+                <option value="{{ organisation.id }}" {% if filters.organizacao == organisation.id|stringformat:"s" %}selected{% endif %}>{{ organisation.name }}</option>
               {% endfor %}
             </select>
           </label>
@@ -61,42 +60,12 @@
             </select>
           </label>
 
-          <label class="field" for="tag">
+          <label class="field field-wide" for="tag">
             <span>Tag</span>
             <select id="tag" name="tag">
               <option value="">Todas</option>
               {% for tag in tags %}
                 <option value="{{ tag.id }}" {% if filters.tag == tag.id|stringformat:"s" %}selected{% endif %}>{{ tag.name }}</option>
-              {% endfor %}
-            </select>
-          </label>
-
-          <label class="field" for="tipo_arquivo">
-            <span>Tipo de arquivo</span>
-            <select id="tipo_arquivo" name="tipo_arquivo">
-              <option value="">Todos</option>
-              {% for ft in file_types %}
-                <option value="{{ ft }}" {% if filters.tipo_arquivo == ft %}selected{% endif %}>{{ ft }}</option>
-              {% endfor %}
-            </select>
-          </label>
-
-          <label class="field" for="tipo_link">
-            <span>Tipo de link</span>
-            <select id="tipo_link" name="tipo_link">
-              <option value="">Todos</option>
-              {% for value, label in link_type_choices %}
-                <option value="{{ value }}" {% if filters.tipo_link == value %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </label>
-
-          <label class="field" for="cadastrado_por">
-            <span>Cadastrado por</span>
-            <select id="cadastrado_por" name="cadastrado_por">
-              <option value="">Todos</option>
-              {% for c in creators %}
-                <option value="{{ c }}" {% if filters.cadastrado_por == c %}selected{% endif %}>{{ c }}</option>
               {% endfor %}
             </select>
           </label>
@@ -138,7 +107,7 @@
             <thead>
               <tr>
                 <th>Título</th>
-                <th>Membro</th>
+                <th>Organizações</th>
                 <th>Categorias</th>
                 <th>Link</th>
               </tr>
@@ -160,11 +129,11 @@
                     {% endif %}
                   </td>
                   <td class="col-author">
-                    {% if doc.doc_author %}
-                      <a href="?autor={{ doc.doc_author.id }}" class="filter-link">{{ doc.doc_author.name }}</a>
-                    {% else %}
+                    {% for organisation in doc.organisations.all %}
+                      <a href="?organizacao={{ organisation.id }}" class="filter-link">{{ organisation.name }}</a>{% if not forloop.last %}, {% endif %}
+                    {% empty %}
                       <span class="muted">—</span>
-                    {% endif %}
+                    {% endfor %}
                   </td>
                   <td class="col-category">
                     {% if doc.category %}
@@ -213,7 +182,7 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <img src="{% static 'img/logo_RNCD_2026_parafundoescuro-02.png' %}" alt="RNCD" class="footer-logo">
-      <p>Rede Nacional de Combate à Desinformação</p>
+      <p>Desenvolvido por Josir Gomes e Márcia Azen</p>
     </div>
   </footer>
 </body>

@@ -2,17 +2,16 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import render
 
-from .models import DocAuthor, DocCategory, DocTag, Document
+from .models import DocCategory, DocTag, Document, Organisation
 
 
 def document_search(request):
     queryset = Document.objects.filter(status='publish').select_related(
-        'doc_author',
         'category',
-    ).prefetch_related('tags')
+    ).prefetch_related('organisations', 'tags')
 
     q = request.GET.get('q', '').strip()
-    author_id = request.GET.get('autor', '').strip()
+    organisation_id = request.GET.get('organizacao', '').strip()
     category_id = request.GET.get('categoria', '').strip()
     tag_id = request.GET.get('tag', '').strip()
     file_type = request.GET.get('tipo_arquivo', '').strip()
@@ -26,29 +25,20 @@ def document_search(request):
             Q(title__icontains=q)
             | Q(direct_link__icontains=q)
             | Q(internal_link__icontains=q)
-            | Q(creator__icontains=q)
-            | Q(doc_author__name__icontains=q)
+            | Q(authorship__icontains=q)
+            | Q(organisations__name__icontains=q)
             | Q(category__name__icontains=q)
             | Q(tags__name__icontains=q)
         ).distinct()
 
-    if author_id:
-        queryset = queryset.filter(doc_author_id=author_id)
+    if organisation_id:
+        queryset = queryset.filter(organisations__id=organisation_id)
 
     if category_id:
         queryset = queryset.filter(category_id=category_id)
 
     if tag_id:
         queryset = queryset.filter(tags__id=tag_id)
-
-    if file_type:
-        queryset = queryset.filter(file_type=file_type)
-
-    if link_type:
-        queryset = queryset.filter(link_type=link_type)
-
-    if creator:
-        queryset = queryset.filter(creator__iexact=creator)
 
     if date_from:
         queryset = queryset.filter(published_at__date__gte=date_from)
@@ -65,46 +55,23 @@ def document_search(request):
         query_params.pop('page')
     querystring = query_params.urlencode()
 
-    file_types = (
-        Document.objects.filter(status='publish')
-        .exclude(file_type='')
-        .values_list('file_type', flat=True)
-        .distinct()
-        .order_by('file_type')
-    )
-
-    creators = (
-        Document.objects.filter(status='publish')
-        .exclude(creator='')
-        .values_list('creator', flat=True)
-        .distinct()
-        .order_by('creator')
-    )
-
     context = {
         'page_obj': page_obj,
         'total_results': paginator.count,
         'querystring': querystring,
         'filters': {
             'q': q,
-            'autor': author_id,
+            'organizacao': organisation_id,
             'categoria': category_id,
             'tag': tag_id,
-            'tipo_arquivo': file_type,
-            'tipo_link': link_type,
-            'cadastrado_por': creator,
             'data_inicio': date_from,
             'data_fim': date_to,
         },
-        'authors': DocAuthor.objects.all(),
+        'organisations': Organisation.objects.all(),
         'categories': DocCategory.objects.all(),
         'tags': DocTag.objects.all(),
-        'file_types': file_types,
-        'creators': creators,
-        'link_type_choices': Document.LINK_TYPE_CHOICES,
         'has_active_filters': any([
-            q, author_id, category_id, tag_id, file_type,
-            link_type, creator, date_from, date_to,
+            q, organisation_id, category_id, tag_id, date_from, date_to,
         ]),
     }
     return render(request, 'pesquisas/index.html', context)

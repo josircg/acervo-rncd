@@ -64,7 +64,7 @@ body {
 }
 
 .brand-logo {
-  height: 72px;
+  height: 110px;
   width: auto;
   display: block;
 }
@@ -150,6 +150,10 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.85rem;
+}
+
+.filters-grid .field-wide {
+  grid-column: span 2;
 }
 
 input,
@@ -359,15 +363,16 @@ select:focus {
 
 .footer-inner {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.75rem;
-  text-align: center;
+  gap: 1.25rem;
+  text-align: left;
 }
 
 .footer-logo {
-  height: 48px;
+  height: 64px;
   width: auto;
+  flex-shrink: 0;
 }
 
 .footer-inner p {
@@ -383,7 +388,11 @@ select:focus {
   }
 
   .brand-logo {
-    height: 56px;
+    height: 84px;
+  }
+
+  .footer-inner {
+    flex-wrap: wrap;
   }
 
   .search-row-main .btn-primary {

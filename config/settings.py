@@ -134,8 +134,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# pesquisas/static é coletado automaticamente pelo AppDirectoriesFinder
+# (pesquisas está em INSTALLED_APPS); não repetir aqui para não gerar
+# conflito de caminho duplicado no collectstatic.
 STATICFILES_DIRS = [
-    BASE_DIR / 'pesquisas' / 'static',
     BASE_DIR / 'assets',
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

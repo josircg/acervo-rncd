@@ -272,11 +272,35 @@ select:focus {
   line-height: 1.35;
 }
 
-.doc-date {
-  display: block;
+.doc-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0.35rem;
+}
+
+.doc-date {
   font-size: 0.82rem;
   color: var(--rncd-muted);
+}
+
+.doc-edit {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--rncd-cyan);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--rncd-cyan);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.doc-edit:hover {
+  background: var(--rncd-cyan);
+  color: #fff;
 }
 
 .doc-tags {
@@ -399,8 +423,62 @@ select:focus {
     width: 100%;
   }
 
-  .results-table th:nth-child(2),
-  .results-table td:nth-child(2) {
-    min-width: 140px;
+  /* No mobile os filtros empilham em uma coluna; nenhum campo força
+     largura mínima maior que a tela. */
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-grid .field-wide {
+    grid-column: auto;
+  }
+
+  .field-grow {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* A tabela de resultados vira cartões empilhados no mobile:
+     cada linha é um bloco vertical e cada célula ganha seu rótulo. */
+  .table-wrap {
+    overflow-x: visible;
+  }
+
+  .results-table,
+  .results-table tbody,
+  .results-table tr,
+  .results-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .results-table thead {
+    display: none;
+  }
+
+  .results-table tr {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--rncd-border);
+  }
+
+  .results-table td {
+    border-bottom: 0;
+    padding: 0.35rem 1.25rem;
+  }
+
+  .col-title {
+    min-width: 0;
+    padding-top: 1rem;
+  }
+
+  /* Rótulo da célula (vem do atributo data-label no <td>). */
+  .results-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--rncd-muted);
   }
 }

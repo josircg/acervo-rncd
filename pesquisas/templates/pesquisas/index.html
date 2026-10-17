@@ -117,9 +117,14 @@
                 <tr>
                   <td class="col-title">
                     <span class="doc-title">{{ doc.title }}</span>
-                    {% if doc.published_at %}
-                      <time class="doc-date" datetime="{{ doc.published_at|date:'c' }}">{{ doc.published_at|date:'d/m/Y' }}</time>
-                    {% endif %}
+                    <span class="doc-meta">
+                      {% if doc.published_at %}
+                        <time class="doc-date" datetime="{{ doc.published_at|date:'c' }}">{{ doc.published_at|date:'d/m/Y' }}</time>
+                      {% endif %}
+                      {% if user.is_staff %}
+                        <a href="{% url 'admin:pesquisas_document_change' doc.pk %}" class="doc-edit" target="_blank" rel="noopener noreferrer">Editar</a>
+                      {% endif %}
+                    </span>
                     {% if doc.tags.exists %}
                       <div class="doc-tags">
                         {% for tag in doc.tags.all %}
@@ -128,23 +133,23 @@
                       </div>
                     {% endif %}
                   </td>
-                  <td class="col-author">
+                  <td class="col-author" data-label="Organizações">
                     {% for organisation in doc.organisations.all %}
                       <a href="?organizacao={{ organisation.id }}" class="filter-link">{{ organisation.name }}</a>{% if not forloop.last %}, {% endif %}
                     {% empty %}
                       <span class="muted">—</span>
                     {% endfor %}
                   </td>
-                  <td class="col-category">
+                  <td class="col-category" data-label="Categorias">
                     {% if doc.category %}
                       <a href="?categoria={{ doc.category.id }}" class="filter-link">{{ doc.category.name }}</a>
                     {% else %}
                       <span class="muted">—</span>
                     {% endif %}
                   </td>
-                  <td class="col-link">
+                  <td class="col-link" data-label="Link">
                     {% if doc.access_url %}
-                      <a href="{{ doc.access_url }}" class="doc-link" target="_blank" rel="noopener noreferrer">
+                      <a href="{% url 'pesquisas:document_open' doc.pk %}" class="doc-link" target="_blank" rel="noopener noreferrer">
                         Abrir
                         <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
                       </a>

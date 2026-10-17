@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.shortcuts import render
+from django.db.models import F, Q
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 
 from .models import DocCategory, DocTag, Document, Organisation
 
@@ -75,3 +76,24 @@ def document_search(request):
         ]),
     }
     return render(request, 'pesquisas/index.html', context)
+
+
+def document_open(request, pk):
+    """Contabiliza o clique no botão "Abrir" e redireciona ao destino.
+
+    Reaproveita o campo ``download_count`` do documento, incrementando-o de
+    forma atômica, e redireciona para a URL resolvida por ``access_url``
+    (link direto externo ou link interno). Documentos inexistentes, não
+    publicados ou sem URL de destino resultam em 404.
+    """
+    document = get_object_or_404(Document, pk=pk, status='publish')
+
+    url = document.access_url
+    if not url:
+        raise Http404('Documento sem link de destino.')
+
+    Document.objects.filter(pk=pk).update(
+        download_count=F('download_count') + 1,
+    )
+
+    return HttpResponseRedirect(url)
